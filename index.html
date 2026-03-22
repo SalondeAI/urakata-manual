@@ -1301,7 +1301,6 @@
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>最終MTG実施（前日リハーサル）</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>名簿の最終更新（キャンセル・追加反映）</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>備品の最終チェック・梱包</li>
-        <li onclick="toggleCheck(this)"><span class="check-icon"></span>ゲスト用飲み物の購入</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>Googleフォト共有フォルダ作成</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>当日の緊急連絡先一覧をDiscordに投稿</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>充電器・モバイルバッテリーの充電</li>
@@ -1321,6 +1320,7 @@
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>主宰・ゲスト用テーブルセット</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>案内板設置（ビル入口・フロア入口）</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>BGM準備</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>ゲスト用飲み物の購入</li>
         <li onclick="toggleCheck(this)"><span class="check-icon"></span>エントランス係を配置</li>
       </ul>
     </div>
@@ -1570,8 +1570,8 @@ var knowledgeBase = [
   { keywords: ['振り返り','改善','ベストプラクティス','教訓'], answer: '主な改善ベストプラクティス：\n【受付】スプレッドシート管理、4窓口体制、名札あいうえお順ソート、両面印刷、3部制ローテーション\n【会場】島型配置、レイアウト図事前共有、席替え30分ルール\n【司会】2名体制、質問投げかけ式アイスブレイク、カウントダウンタイマー\n【撮影】画角・分担の事前打ち合わせ、懇親会でのインタビューが自然体\n【その他】孤立者への声かけ、スタッフメリットの事前周知、事前MTG最低2回' },
   { keywords: ['チェックリスト','2週間前','準備リスト'], answer: '2週間前チェックリスト：\n□ 運営スタッフの募集・確定\n□ 役割分担の決定\n□ キックオフMTGの実施\n□ 会場の下見\n□ 備品の在庫確認・発注\n□ スライド作成開始\n□ 参加者名簿の作成開始' },
   { keywords: ['1週間前','一週間前'], answer: '1週間前チェックリスト：\n□ 名簿のファイナライズ（決済リストと照合）\n□ 名札データ作成・印刷\n□ スライド完成・レビュー\n□ タイムテーブル確定・共有\n□ ゲストとの最終すり合わせ\n□ 備品の搬入担当決定\n□ 駅→会場のルート案内作成・共有' },
-  { keywords: ['前日'], answer: '前日チェックリスト：\n□ 最終MTG実施（前日リハーサル）\n□ 名簿の最終更新（キャンセル・追加反映）\n□ 備品の最終チェック・梱包\n□ ゲスト用飲み物の購入\n□ Googleフォト共有フォルダ作成\n□ 当日の緊急連絡先一覧をDiscordに投稿\n□ 充電器・モバイルバッテリーの充電' },
-  { keywords: ['当日チェック','当日準備','開場前'], answer: '当日（準備〜開場前）チェックリスト：\n□ スタッフ集合・顔合わせ\n□ 赤ハチマキ配布・着用\n□ PC接続・スライド投映テスト\n□ マイク・スピーカー動作テスト\n□ Wi-Fi接続テスト\n□ 受付テーブル配置・名札セット\n□ レイアウト確認（島型配置）\n□ 主宰・ゲスト用テーブルセット\n□ 案内板設置\n□ BGM準備\n□ エントランス係を配置' },
+  { keywords: ['前日'], answer: '前日チェックリスト：\n□ 最終MTG実施（前日リハーサル）\n□ 名簿の最終更新（キャンセル・追加反映）\n□ 備品の最終チェック・梱包\n□ Googleフォト共有フォルダ作成\n□ 当日の緊急連絡先一覧をDiscordに投稿\n□ 充電器・モバイルバッテリーの充電' },
+  { keywords: ['当日チェック','当日準備','開場前'], answer: '当日（準備〜開場前）チェックリスト：\n□ スタッフ集合・顔合わせ\n□ 赤ハチマキ配布・着用\n□ PC接続・スライド投映テスト\n□ マイク・スピーカー動作テスト\n□ Wi-Fi接続テスト\n□ 受付テーブル配置・名札セット\n□ レイアウト確認（島型配置）\n□ 主宰・ゲスト用テーブルセット\n□ 案内板設置\n□ BGM準備\n□ ゲスト用飲み物の購入\n□ エントランス係を配置' },
   { keywords: ['作業会中チェック','作業会チェック'], answer: '作業会中チェックリスト：\n□ 受付：名簿チェック漏れなし\n□ 司会：注意事項アナウンス完了\n□ 集合写真撮影\n□ アイスブレイク実施\n□ 席替えアナウンス（30分ごと）\n□ スペシャルコンテンツ実施\n□ アンケート案内\n□ 懇親会会場案内\n□ 忘れ物チェック\n□ 原状復帰・完全撤収' },
   { keywords: ['懇親会チェック'], answer: '懇親会チェックリスト：\n□ 懇親会受付完了\n□ 当日追加参加の決済対応\n□ 乾杯挨拶\n□ ラストオーダーアナウンス\n□ 締めの挨拶\n□ 忘れ物チェック\n□ 完全撤収' },
   { keywords: ['終了後','事後','アフター'], answer: '終了後チェックリスト：\n□ 集合写真をDiscordに共有\n□ Googleフォトに写真アップロード\n□ 振り返りシートの記入依頼\n□ 備品の回収・在庫記録更新\n□ スタッフお疲れさまメッセージ' },
