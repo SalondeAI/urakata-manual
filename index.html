@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウラカタマッチングサロン オフ会運営マニュアル</title>
+<style>
+  /* ===== LOGIN SCREEN STYLES ===== */
+  #login-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #1a1a2e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  #login-screen.fade-out {
+    opacity: 0;
+    transform: scale(1.05);
+    pointer-events: none;
+  }
+  .login-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .lock-icon {
+    width: 70px; height: 70px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 8px 30px rgba(233,69,96,0.3);
+  }
+  .login-card h1 {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+  .login-card .subtitle {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .login-card input[type="password"] {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    margin-bottom: 1rem;
+    text-align: center;
+    letter-spacing: 0.15em;
+  }
+  .login-card input[type="password"]::placeholder {
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.05em;
+  }
+  .login-card input[type="password"]:focus {
+    border-color: #e94560;
+  }
+  .login-card button {
+    width: 100%;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e94560, #c0392b);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .login-card button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233,69,96,0.4);
+  }
+  .login-card button:active {
+    transform: translateY(0);
+  }
+  .error-msg {
+    color: #e94560;
+    font-size: 0.85rem;
+    margin-top: 0.8rem;
+    min-height: 1.2em;
+    transition: opacity 0.3s;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-12px); }
+    40% { transform: translateX(12px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+  }
+  .shake {
+    animation: shake 0.5s ease;
+  }
+
+  /* ===== MANUAL CONTENT (hidden until login) ===== */
+  #manual-content {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  #manual-content.fade-in {
+    opacity: 1;
+  }
+
+  /* ===== ORIGINAL MANUAL STYLES ===== */
+  :root {
+    --primary: #1a1a2e;
+    --secondary: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #2d3436;
+    --text-light: #636e72;
+    --border: #dfe6e9;
+    --success: #00b894;
+    --warning: #fdcb6e;
+    --danger: #d63031;
+    --info: #74b9ff;
+    --red-tag: #e94560;
+    --blue-tag: #0984e3;
+    --yellow-tag: #f39c12;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--accent2));
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .header p {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.3rem;
+  }
+
+  .nav-container {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    position: sticky;
+    top: 80px;
+    z-index: 99;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .nav-container button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.2rem;
+    border: none;
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-container button:hover,
+  .nav-container button.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 4px solid var(--accent2);
+  }
+  .card h3 {
+    font-size: 1.1rem;
+    color: var(--accent2);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .card.warning { border-left-color: var(--warning); }
+  .card.danger { border-left-color: var(--danger); }
+  .card.success { border-left-color: var(--success); }
+  .card.info { border-left-color: var(--info); }
+
+  ul, ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin-bottom: 0.4rem; font-size: 0.92rem; }
+
+  .table-wrapper { overflow-x: auto; margin: 0.8rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  tr:nth-child(even) { background: #f1f3f5; }
+
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+  }
+  .tag-red { background: var(--red-tag); }
+  .tag-blue { background: var(--blue-tag); }
+  .tag-yellow { background: var(--yellow-tag); color: #2d3436; }
+  .tag-green { background: var(--success); }
+  .tag-gray { background: var(--text-light); }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding: 0.5rem 0.8rem;
+    margin: 0.3rem 0;
+    background: var(--bg);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .checklist li:hover { background: #e8f0fe; }
+  .checklist li .check-icon {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+  .checklist li.checked .check-icon {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+  .checklist li.checked { text-decoration: line-through; color: var(--text-light); }
+
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2));
+    border-radius: 3px;
+  }
+  .timeline-item {
+    position: relative;
+    padding: 0.8rem 0 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.55rem;
+    top: 1.1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .timeline-item .time {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+  .timeline-item .event {
+    font-weight: 600;
+    color: var(--primary);
+    margin-left: 0.5rem;
+  }
+  .timeline-item .detail {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.2rem;
+  }
+
+  .accordion-header {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.3rem;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .accordion-header:hover { background: #f1f3f5; }
+  .accordion-header .arrow { transition: transform 0.3s; }
+  .accordion-header.open .arrow { transform: rotate(180deg); }
+  .accordion-body {
+    display: none;
+    padding: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    margin-top: -0.4rem;
+    margin-bottom: 0.8rem;
+  }
+  .accordion-body.open { display: block; }
+
+  .improvement-item {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    background: var(--bg);
+    border-radius: 8px;
+    align-items: flex-start;
+  }
+  .improvement-item .icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+  }
+
+  .print-btn {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+    z-index: 100;
+    transition: transform 0.2s;
+  }
+  .print-btn:hover { transform: scale(1.1); }
+
+  .search-box {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.2rem; }
+    .nav-container button { font-size: 0.72rem; padding: 0.4rem 0.7rem; }
+    .card { padding: 1rem; }
+    table { font-size: 0.78rem; }
+    th, td { padding: 0.4rem 0.5rem; }
+  }
+
+  @media print {
+    .header { position: static; }
+    .nav-container, .print-btn, .search-box { display: none; }
+    .section { display: block !important; page-break-inside: avoid; }
+    .section-title { page-break-after: avoid; }
+    .card { break-inside: avoid; }
+    #login-screen { display: none !important; }
+  }
+
+  .highlight { background: #fff3cd; padding: 0.1rem 0.2rem; border-radius: 3px; }
+  .flex-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .flex-row .card { flex: 1; min-width: 280px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card" id="login-card">
+    <div class="lock-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h1>ウラカタマッチングサロン</h1>
+    <p class="subtitle">オフ会運営マニュアル</p>
+    <input type="password" id="password-input" placeholder="パスワードを入力" autocomplete="off">
+    <button onclick="checkPassword()">ログイン</button>
+    <p class="error-msg" id="error-msg"></p>
+  </div>
+</div>
+
+<!-- ===== MANUAL CONTENT ===== -->
+<div id="manual-content">
+
+<div class="header">
+  <h1>ウラカタマッチングサロン オフ会運営マニュアル</h1>
+  <p>最終更新: 2026年3月22日 ｜ 第5回東京オフ会（3/21）実績ベース</p>
+</div>
+
+<div class="nav-container" id="nav">
+  <button class="active" onclick="showSection('overview')">全体概要</button>
+  <button onclick="showSection('org')">運営体制</button>
+  <button onclick="showSection('timetable')">タイムテーブル</button>
+  <button onclick="showSection('mc')">司会進行</button>
+  <button onclick="showSection('reception')">受付</button>
+  <button onclick="showSection('venue')">会場</button>
+  <button onclick="showSection('entrance')">エントランス</button>
+  <button onclick="showSection('photo')">撮影</button>
+  <button onclick="showSection('guest')">ゲストアテンド</button>
+  <button onclick="showSection('supplies')">備品</button>
+  <button onclick="showSection('lessons')">振り返り・改善</button>
+  <button onclick="showSection('checklist')">チェックリスト</button>
+</div>
+
+<div class="main">
+  <input type="text" class="search-box" placeholder="キーワードで検索..." oninput="searchContent(this.value)">
+
+  <!-- ===== 1. 全体概要 ===== -->
+  <div class="section active" id="overview">
+    <h2 class="section-title">全体概要</h2>
+
+    <div class="card">
+      <h3>オフ会の目的</h3>
+      <p>ウラカタマッチングサロンのオフ会は、<strong>コンテンツホルダー（経営者）とウラカタ（裏方人材）のリアルマッチングの場</strong>です。オンラインでは生まれにくい深い繋がりを作り、実際のビジネスマッチングにつなげることを目指しています。</p>
+      <ul>
+        <li><strong>作業会（交流会）</strong>：アイスブレイク→自由交流→スペシャルコンテンツの構成</li>
+        <li><strong>懇親会</strong>：飲食を伴うカジュアルな交流の場</li>
+        <li><strong>二次会</strong>：任意参加の延長交流（会場別手配）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>開催実績（規模の推移）</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr>
+            <th>回</th><th>日程</th><th>場所</th><th>作業会</th><th>懇親会</th><th>二次会</th><th>スタッフ数</th>
+          </tr>
+          <tr><td>第1回</td><td>2025/10/27</td><td>東京・品川</td><td>—</td><td>—</td><td>—</td><td>23名</td></tr>
+          <tr><td>第2回</td><td>2025/11/29</td><td>大阪</td><td>36名</td><td>38名</td><td>24名</td><td>13名</td></tr>
+          <tr><td>第3回</td><td>2025/12/8</td><td>東京・品川</td><td>59名</td><td>46名</td><td>—</td><td>7名</td></tr>
+          <tr><td>第4回</td><td>2026/1/19</td><td>東京・品川</td><td>59名</td><td>46名</td><td>—</td><td>8名</td></tr>
+          <tr><td style="font-weight:700;color:var(--accent)">第5回</td><td>2026/3/21</td><td>東京・新橋</td><td><strong>137名</strong></td><td><strong>117名</strong></td><td>—</td><td><strong>18名</strong></td></tr>
+        </table>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-light);margin-top:0.5rem;">※ 名古屋オフ会（2026/2/8）も別途開催実績あり</p>
+    </div>
+
+    <div class="card">
+      <h3>参加者の構成（名札紐の色で識別）</h3>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:0.5rem;">
+        <div><span class="tag tag-red">赤</span> コンテンツホルダー & 経営者</div>
+        <div><span class="tag tag-blue">青</span> ウラカタ</div>
+        <div><span class="tag tag-yellow">黄</span> ウラカタ兼ホルダー</div>
+      </div>
+      <p style="margin-top:0.8rem;font-size:0.9rem;">名札紐の色で参加者の属性がひと目でわかる仕組み。交流時のマッチング効率を高めます。</p>
+    </div>
+
+    <div class="card warning">
+      <h3>顔出しNGの方への配慮</h3>
+      <ul>
+        <li><strong>黄色いハチマキ</strong>を着用 → 写真・動画への映り込みNG</li>
+        <li>写真アップロード時は黄色ハチマキの方の顔を隠す</li>
+        <li>受付時にハチマキを配布し、注意事項を口頭でも伝達</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>運営の基本原則</h3>
+      <ol>
+        <li><strong>安全第一</strong>：参加者の安全と快適さが最優先</li>
+        <li><strong>時間厳守</strong>：会場の撤収時間は絶対。逆算してスケジュール管理</li>
+        <li><strong>声かけ文化</strong>：孤立者がいたら積極的に声をかける</li>
+        <li><strong>柔軟対応</strong>：想定外のトラブルはチームで相談して解決</li>
+        <li><strong>振り返り重視</strong>：毎回の学びを次回に活かす</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== 2. 運営体制 ===== -->
+  <div class="section" id="org">
+    <h2 class="section-title">運営体制・役割分担</h2>
+
+    <div class="card">
+      <h3>組織図（推奨体制）</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>ポジション</th><th>推奨人数</th><th>主な責務</th></tr>
+          <tr><td><strong>全体統括</strong></td><td>1〜2名</td><td>全体の意思決定、主宰との連携、緊急時判断</td></tr>
+          <tr><td><strong>リーダー</strong></td><td>1名</td><td>当日の現場指揮、各チームとの連携</td></tr>
+          <tr><td><strong>サブリーダー</strong></td><td>1名</td><td>リーダー補佐、情報共有ハブ</td></tr>
+          <tr><td><strong>司会進行</strong></td><td>2名</td><td>MC + タイムキーパー/スライド操作</td></tr>
+          <tr><td><strong>受付係</strong></td><td>6〜8名</td><td>名簿チェック、名札配布、動線管理</td></tr>
+          <tr><td><strong>会場係</strong></td><td>3〜5名</td><td>レイアウト管理、誘導、クローク</td></tr>
+          <tr><td><strong>エントランス係</strong></td><td>2名</td><td>ビル入口〜会場フロアの案内・誘導</td></tr>
+          <tr><td><strong>撮影</strong></td><td>2〜4名</td><td>スチール・動画撮影、記録管理</td></tr>
+          <tr><td><strong>ゲストアテンド</strong></td><td>1〜2名</td><td>特別ゲストの送迎・ケア</td></tr>
+          <tr><td><strong>名札印刷</strong></td><td>1名</td><td>名札データ作成・印刷・仕分け</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card info">
+      <h3>人数規模別のスタッフ目安</h3>
+      <ul>
+        <li><strong>〜50名規模</strong>：スタッフ7〜10名（受付3名、会場2名で対応可能）</li>
+        <li><strong>50〜100名規模</strong>：スタッフ12〜15名（受付5名、会場3名推奨）</li>
+        <li><strong>100名超規模</strong>：スタッフ18名以上（受付8名、会場4名、エントランス2名が必須）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>連絡体制</h3>
+      <ul>
+        <li><strong>Discord</strong>：運営専用チャンネルで事前〜当日の連携</li>
+        <li><strong>事前MTG</strong>：最低2回（キックオフ + 前日最終確認）</li>
+        <li><strong>当日</strong>：Discord + 口頭で臨機応変に</li>
+        <li><strong>資料共有</strong>：Googleドライブに集約（進行表、名簿、マニュアル、スライド）</li>
+      </ul>
+    </div>
+
+    <div class="card warning">
+      <h3>識別マーク</h3>
+      <ul>
+        <li><strong>運営スタッフ</strong>：<span class="tag tag-red">赤ハチマキ</span> を着用</li>
+        <li><strong>顔出しNG参加者</strong>：<span class="tag tag-yellow">黄ハチマキ</span> を着用</li>
+        <li>将来的には運営バッジの導入も検討（過去フィードバックより）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 3. タイムテーブル ===== -->
+  <div class="section" id="timetable">
+    <h2 class="section-title">標準タイムテーブル</h2>
+
+    <div class="card">
+      <h3>作業会（交流会）</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="time">13:00</span><span class="event">スタッフ集合</span>
+          <div class="detail">会場フロアのエレベーター前。顔合わせ・当日の流れ確認</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">13:05</span><span class="event">準備開始</span>
+          <div class="detail">各チーム持ち場へ。司会：機材チェック / 受付：テーブル・名札準備 / 会場：レイアウト調整</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">13:30</span><span class="event">開場・受付スタート</span>
+          <div class="detail">参加者入場開始。スプレッドシートで名簿チェック、名札配布</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:00</span><span class="event">作業会スタート</span>
+          <div class="detail">司会による開会挨拶、注意事項説明、撮影NG説明</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:07</span><span class="event">主宰挨拶</span>
+          <div class="detail">まーしーさん・まぎーさんからご挨拶</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:15</span><span class="event">ゲスト紹介（ある場合）</span>
+          <div class="detail">特別ゲストの紹介・フォトセッション</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:25</span><span class="event">集合写真</span>
+          <div class="detail">全体写真撮影（顔出しNGの方は外れてもらう or 後列で配慮）</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:30</span><span class="event">アイスブレイク</span>
+          <div class="detail">2〜3テーマ（自己紹介、共通点探しゲーム等）。30分ごとに席替え</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:50</span><span class="event">交流タイム</span>
+          <div class="detail">自由交流。ゲスト個別コンサル・主宰巡回も同時進行</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">16:00</span><span class="event">スペシャルコンテンツ</span>
+          <div class="detail">対談・セミナー・質疑応答（30〜60分）</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">17:00</span><span class="event">懇親会案内・閉会</span>
+          <div class="detail">懇親会会場の案内、アンケート依頼</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">17:05</span><span class="event">片付け・完全撤収</span>
+          <div class="detail">原状復帰。忘れ物チェック。<span class="highlight">撤収時間は厳守</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>懇親会</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="time">17:30</span><span class="event">懇親会会場到着・準備</span>
+          <div class="detail">会場確認、受付セット</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">17:40</span><span class="event">開場・受付</span>
+          <div class="detail">名簿チェック（作業会のみ参加者の当日追加受付もここで対応）</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">18:00</span><span class="event">懇親会スタート</span>
+          <div class="detail">乾杯挨拶 → 自由交流</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">19:40</span><span class="event">ラストオーダー</span>
+          <div class="detail">司会からアナウンス。忘れがちなので注意</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">19:45</span><span class="event">締めの挨拶</span>
+          <div class="detail">主宰からご挨拶、マッチング報告の案内</div>
+        </div>
+        <div class="timeline-item">
+          <span class="time">20:00</span><span class="event">完全撤収</span>
+          <div class="detail">忘れ物チェック。二次会案内（ある場合）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card warning">
+      <h3>タイムテーブル運用のポイント</h3>
+      <ul>
+        <li><strong>席替え</strong>：30分ごと。簡単なルール（例：「右隣のテーブルへ」）で素早く</li>
+        <li><strong>撤収時間</strong>：会場契約時間の15分前には原状復帰完了を目標</li>
+        <li><strong>バッファ</strong>：予定より5〜10分早めに次の工程準備を開始</li>
+        <li><strong>懇親会入場</strong>：入口で滞留しやすいため、アナウンスで分散入場を促す</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 4. 司会進行 ===== -->
+  <div class="section" id="mc">
+    <h2 class="section-title">司会進行チーム</h2>
+
+    <div class="card">
+      <h3>体制</h3>
+      <ul>
+        <li><strong>MC（司会）</strong>：1名 — 進行の主導</li>
+        <li><strong>司会補佐（タイムキーパー）</strong>：1名 — スライド操作・時間管理</li>
+      </ul>
+      <p style="margin-top:0.5rem;font-size:0.9rem;">※ 司会と受付の兼任は避ける（過去の教訓：両立困難で抜け漏れ発生）</p>
+    </div>
+
+    <div class="card">
+      <h3>事前準備タスク</h3>
+      <ol>
+        <li>スライド投映チェック（PC接続・HDMI/Type-C変換確認）</li>
+        <li>マイク・スピーカーの動作テスト</li>
+        <li>Wi-Fi情報の確認（会場から取得してスライドに反映）</li>
+        <li>BGM準備（Spotify等、著作権フリーの音源）</li>
+        <li>主宰・登壇者との進行すり合わせ</li>
+        <li>アイスブレイクのテーマ決定（2〜3個）</li>
+        <li>カウントダウンタイマーの準備</li>
+        <li>アフターアンケートURL/QRコードの確認</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3>当日の進行台本（標準）</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>時間</th><th>内容</th><th>司会の動き</th></tr>
+          <tr><td>14:00</td><td>開会</td><td>「ウラカタマッチングサロン第○回オフ会へようこそ！」注意事項の案内</td></tr>
+          <tr><td>14:07</td><td>主宰挨拶</td><td>まーしーさん・まぎーさんを紹介、マイクを渡す</td></tr>
+          <tr><td>14:15</td><td>ゲスト紹介</td><td>ゲストプロフィールを読み上げ、お迎えする</td></tr>
+          <tr><td>14:25</td><td>集合写真</td><td>「皆さまお立ちください」撮影隊へ合図</td></tr>
+          <tr><td>14:30</td><td>アイスブレイク</td><td>テーマ発表、時間管理（5分×2〜3テーマ）</td></tr>
+          <tr><td>14:50</td><td>交流タイム</td><td>30分ごとに席替えアナウンス</td></tr>
+          <tr><td>16:00</td><td>対談/セミナー</td><td>登壇者紹介、質疑応答のファシリテーション</td></tr>
+          <tr><td>17:00</td><td>閉会</td><td>懇親会案内、アンケート依頼、退場アナウンス</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card success">
+      <h3>過去の好事例</h3>
+      <ul>
+        <li>スライド・マイクの事前チェックを開場30分前に完了 → トラブルなし</li>
+        <li>質問を投げかけ形式でアイスブレイク → 盛り上がりやすい</li>
+        <li>登壇者用のお水を座席に事前配置 → スマートな印象</li>
+        <li>カウントダウンタイマー表示 → 時間管理が可視化されて好評</li>
+      </ul>
+    </div>
+
+    <div class="card danger">
+      <h3>過去の失敗・注意点</h3>
+      <ul>
+        <li>マイクの使い方が不明で開始が遅れた → <strong>必ず事前テスト</strong></li>
+        <li>ラストオーダーの声かけ漏れ → <strong>タイマーをセット</strong></li>
+        <li>メンバー紹介漏れ → <strong>紹介リストを事前作成</strong></li>
+        <li>司会と受付兼任で抜け漏れ → <strong>兼任禁止</strong></li>
+        <li>建物入口で混雑 → <strong>エントランス係を配置し案内板掲示</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 5. 受付 ===== -->
+  <div class="section" id="reception">
+    <h2 class="section-title">受付チーム</h2>
+
+    <div class="card">
+      <h3>体制（100名超の場合）</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>役割</th><th>人数</th><th>詳細</th></tr>
+          <tr><td>受付リーダー</td><td>1名</td><td>全体指揮、トラブル対応判断</td></tr>
+          <tr><td>名簿チェック</td><td>4名</td><td>4窓口体制（あ行〜/か行〜/さ行〜/た行〜 等で分担）</td></tr>
+          <tr><td>名札・配布物</td><td>2名</td><td>名札ホルダー渡し、リストバンド配布</td></tr>
+          <tr><td>事務/当日対応</td><td>1名</td><td>当日申込（QRコード決済）、キャンセル処理</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>受付の流れ</h3>
+      <ol>
+        <li>参加者が到着 → 名前を確認</li>
+        <li>スプレッドシート（タブレット/PC）で名簿チェック → チェックマーク</li>
+        <li>名札ホルダー（紐の色で属性別）を渡す</li>
+        <li>顔出しNGの方には黄色ハチマキを渡す</li>
+        <li>リストバンド配布（作業会/懇親会の区別用）</li>
+        <li>会場内への案内</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3>名簿管理</h3>
+      <ul>
+        <li><strong>Googleスプレッドシート</strong>で管理（紙は不要）</li>
+        <li>事前にあいうえお順でソート → 検索効率UP</li>
+        <li>4窓口に分割（頭文字で振り分け）→ 列を短くして待ち時間削減</li>
+        <li>当日キャンセル・追加参加の列を別途用意</li>
+        <li>UTAGE等の決済システムと名簿の照合を事前に済ませておく</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>名札の準備</h3>
+      <ul>
+        <li><strong>名札ホルダー</strong>：紐の色で属性識別（赤/青/黄）</li>
+        <li>名前は<strong>両面印刷</strong>（裏返しても見える）</li>
+        <li>ジャンル・得意分野も名札に記載 → マッチング促進</li>
+        <li>顔出し有無も名札に小さく記載（過去改善）</li>
+        <li>あいうえお順に仕分け → 受付時にすぐ見つけられる</li>
+        <li>空白の名札を数枚用意 → 当日申込・名前不一致への対応</li>
+        <li><span class="highlight">名札紐の長さ調整</span>：長すぎると不評（過去フィードバック）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>受付テーブル配置</h3>
+      <ul>
+        <li><strong>会場内に設置</strong>（エレベーターホール前は狭くて滞留するため）</li>
+        <li>4窓口（100名超の場合）を横並びに配置</li>
+        <li>動線：入口 → 受付テーブル → 名札受取 → 座席へ</li>
+        <li>テーブル前に「あ行〜」等の案内表示を掲示</li>
+      </ul>
+    </div>
+
+    <div class="card warning">
+      <h3>受付ローテーション</h3>
+      <p>受付は立ちっぱなしで負荷が高いため、<strong>3部制ローテーション</strong>を推奨：</p>
+      <ol>
+        <li>第1部（13:30〜14:30）：ピークタイム。全員配置</li>
+        <li>第2部（14:30〜16:00）：半数が交代で休憩・交流参加</li>
+        <li>第3部（16:00〜17:00）：最低2名で遅刻者・再入場対応</li>
+      </ol>
+    </div>
+
+    <div class="card success">
+      <h3>過去の好事例</h3>
+      <ul>
+        <li>あいうえお順ソート → 検索時間が大幅に短縮</li>
+        <li>ストラップ色分け → 属性がひと目でわかり好評</li>
+        <li>懇親会ローテーション → スタッフも楽しめた</li>
+        <li>カラー印字の名札 → 視認性が良く好評</li>
+        <li>名札両面印刷 → 裏返しても名前が見えて便利</li>
+      </ul>
+    </div>
+
+    <div class="card danger">
+      <h3>過去の失敗・注意点</h3>
+      <ul>
+        <li>名札ホルダーの紐が絡まる → <strong>事前にほどいて準備</strong></li>
+        <li>名札ホルダー不足 → <strong>予備を2割多めに用意</strong></li>
+        <li>UTAGE未反映の参加者 → <strong>事前に決済リストと名簿を照合</strong></li>
+        <li>当日申込フローが決まっていない → <strong>QRコード決済のフローを事前に確定</strong></li>
+        <li>受付での名前不一致 → <strong>Discord名・本名の対応表を事前作成</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 6. 会場 ===== -->
+  <div class="section" id="venue">
+    <h2 class="section-title">会場チーム</h2>
+
+    <div class="card">
+      <h3>主な役割</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>タスク</th><th>詳細</th></tr>
+          <tr><td>レイアウト確認・調整</td><td>島型配置（6〜8人/島）が基本。会場側で設定済みなら微調整のみ</td></tr>
+          <tr><td>主宰・ゲスト用テーブル</td><td>ステージ近く or 専用位置に配置。飲み物を事前セット</td></tr>
+          <tr><td>Wi-Fi確認</td><td>SSID・パスワードを確認し司会に共有</td></tr>
+          <tr><td>案内板設置</td><td>フロア入口・エレベーター前に会場案内を掲示</td></tr>
+          <tr><td>着席誘導</td><td>参加者を空いている席へ案内</td></tr>
+          <tr><td>席替え誘導</td><td>30分ごとの席替えをサポート</td></tr>
+          <tr><td>クローク管理</td><td>懇親会会場でのみ。コート・荷物置き場の管理</td></tr>
+          <tr><td>忘れ物チェック</td><td>撤収時に全テーブル・椅子下を確認</td></tr>
+          <tr><td>原状復帰</td><td>テーブル・椅子を元の配置に戻す</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>レイアウトのポイント</h3>
+      <ul>
+        <li><strong>島型配置</strong>：6〜8人掛け×必要数。席替えしやすい</li>
+        <li><strong>通路幅</strong>：人がすれ違える幅を確保</li>
+        <li><strong>ゲスト用スペース</strong>：個別コンサル用の列整理スペースを確保</li>
+        <li><strong>まぎーさん囲み会</strong>：椅子10脚を輪にして配置（テーブルなし）</li>
+        <li><strong>レイアウト図</strong>を事前に作成・共有しておくとスムーズ</li>
+      </ul>
+    </div>
+
+    <div class="card success">
+      <h3>過去の好事例</h3>
+      <ul>
+        <li>レイアウト図を紙面で全スタッフに共有 → 迷わず配置</li>
+        <li>声掛け合いながらのサポート → チームワーク向上</li>
+        <li>原状復帰の素早さ → 会場側から好評</li>
+      </ul>
+    </div>
+
+    <div class="card danger">
+      <h3>注意点</h3>
+      <ul>
+        <li>受付チームとの認識共有（誰がどこまで対応するか）を事前に決める</li>
+        <li>会場内誘導のローテーションを決めておく（ずっと同じ人が立ちっぱなしにならないよう）</li>
+        <li>車椅子利用者がいる場合の動線確保</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 7. エントランス ===== -->
+  <div class="section" id="entrance">
+    <h2 class="section-title">エントランスチーム</h2>
+
+    <div class="card">
+      <h3>役割と配置</h3>
+      <p>100名超の大規模イベントでは、<strong>ビル入口〜会場フロアまでの案内係</strong>が必須です。</p>
+      <ul>
+        <li><strong>配置場所</strong>：ビル1Fエントランス、エレベーターホール前</li>
+        <li><strong>人数</strong>：2名（1F + 会場フロア）</li>
+        <li><strong>役割</strong>：
+          <ul>
+            <li>参加者に声をかけて会場フロアへ案内</li>
+            <li>エレベーターの案内（複数基ある場合どれに乗るか）</li>
+            <li>混雑時の滞留防止（エレベーターホールが狭い場合は特に重要）</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card warning">
+      <h3>事前準備</h3>
+      <ul>
+        <li><strong>下見</strong>：可能であれば事前にビル入口〜会場までのルートを確認</li>
+        <li><strong>案内資料</strong>：駅から会場までのルート写真・動画を作成してDiscordで共有</li>
+        <li><strong>案内板</strong>：ビル入口に「ウラカタマッチングサロン オフ会 ○F」の掲示</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 8. 撮影 ===== -->
+  <div class="section" id="photo">
+    <h2 class="section-title">撮影チーム</h2>
+
+    <div class="card">
+      <h3>体制と分担</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>役割</th><th>人数</th><th>内容</th></tr>
+          <tr><td>リーダー</td><td>1名</td><td>撮影指示・進行との連携</td></tr>
+          <tr><td>スチール写真</td><td>1名</td><td>会場全体・交流シーン・登壇者を撮影</td></tr>
+          <tr><td>縦動画</td><td>1名</td><td>SNS用のショート動画</td></tr>
+          <tr><td>横動画</td><td>1名</td><td>記録用・YouTube用の動画</td></tr>
+        </table>
+      </div>
+      <p style="margin-top:0.5rem;font-size:0.9rem;">※ 外部撮影隊が入る場合は、事前に撮影範囲・NGエリアを共有</p>
+    </div>
+
+    <div class="card">
+      <h3>撮影時の注意事項</h3>
+      <ul>
+        <li><strong>顔出しNG（黄ハチマキ）</strong>の方は絶対に映さない</li>
+        <li>カメラ設定を統一（解像度・色味）</li>
+        <li>インタビュー対象者リストを事前に共有</li>
+        <li>Googleフォトの共有アルバムを事前に作成</li>
+        <li>集合写真は<strong>当日中にDiscordで共有</strong></li>
+        <li>懇親会でのインタビューはお酒後が自然体で良い内容が撮れる（過去実績）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>準備物</h3>
+      <ul>
+        <li>スチール撮影機材（スマホ可。予備バッテリー必須）</li>
+        <li>動画撮影機材 + 三脚/ジンバル</li>
+        <li>SDカード予備</li>
+        <li>インタビュー質問リスト（固定テンプレ推奨）</li>
+        <li>写真格納用Googleフォトフォルダ</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 9. ゲストアテンド ===== -->
+  <div class="section" id="guest">
+    <h2 class="section-title">ゲストアテンドチーム</h2>
+
+    <div class="card">
+      <h3>担当範囲</h3>
+      <ul>
+        <li>ゲストの送迎（駅〜会場）</li>
+        <li>会場内での案内・席への誘導</li>
+        <li>ゲスト用の飲み物・軽食の準備</li>
+        <li>個別コンサル時の列整理</li>
+        <li>ゲストのスケジュール管理（退出時間等）</li>
+      </ul>
+    </div>
+
+    <div class="card warning">
+      <h3>事前準備</h3>
+      <ul>
+        <li>会場付近のルートを事前に下見（いづまるさん方式）</li>
+        <li>ゲスト用の飲み物は<strong>前日に購入</strong>し、指定座席に配置</li>
+        <li>ゲストの到着時間・退出時間を事前確認</li>
+        <li>ゲストの好み（飲み物等）を事前にリサーチ</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>個別コンサル運営（おさるさん方式）</h3>
+      <ul>
+        <li><strong>並び順で時間の限り対応</strong>（予約制ではない）</li>
+        <li>会場係の1名が列整理を担当</li>
+        <li>1人あたりの目安時間を設定（5〜10分）</li>
+        <li>列が長い場合は途中で締め切りアナウンス</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 10. 備品 ===== -->
+  <div class="section" id="supplies">
+    <h2 class="section-title">備品リスト</h2>
+
+    <div class="card">
+      <h3>必須備品</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>カテゴリ</th><th>品目</th><th>目安数量（100名超）</th><th>備考</th></tr>
+          <tr><td rowspan="3">名札関連</td><td>名札ホルダー（赤紐）</td><td>ホルダー数+20%予備</td><td>コンテンツホルダー&経営者用</td></tr>
+          <tr><td>名札ホルダー（青紐）</td><td>同上</td><td>ウラカタ用</td></tr>
+          <tr><td>名札ホルダー（黄紐）</td><td>同上</td><td>兼任用</td></tr>
+          <tr><td rowspan="2">識別</td><td>赤ハチマキ</td><td>スタッフ数+5</td><td>運営スタッフ識別用</td></tr>
+          <tr><td>黄ハチマキ</td><td>20枚程度</td><td>顔出しNG用</td></tr>
+          <tr><td rowspan="2">入場管理</td><td>リストバンド（青）</td><td>作業会参加者数</td><td>作業会用</td></tr>
+          <tr><td>リストバンド（ゴールド）</td><td>懇親会参加者数</td><td>懇親会用</td></tr>
+          <tr><td rowspan="5">文具</td><td>黒ネームペン</td><td>10本</td><td>名札記入用</td></tr>
+          <tr><td>ボールペン</td><td>10本</td><td>各種記入用</td></tr>
+          <tr><td>マーカー</td><td>5本</td><td>案内表示作成用</td></tr>
+          <tr><td>ハサミ</td><td>2〜3個</td><td></td></tr>
+          <tr><td>養生テープ</td><td>2巻</td><td>案内板掲示用</td></tr>
+          <tr><td rowspan="3">その他</td><td>A4コピー用紙</td><td>50枚</td><td>案内板・予備資料</td></tr>
+          <tr><td>ゴミ袋</td><td>10枚</td><td></td></tr>
+          <tr><td>ウェットティッシュ</td><td>2パック</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>機材</h3>
+      <ul>
+        <li>PC（スライド投映用）</li>
+        <li>HDMI変換アダプター（Type-C → HDMI）</li>
+        <li>延長コード</li>
+        <li>マイク（会場備付 or 持込。事前確認必須）</li>
+        <li>ポータブルスピーカー（BGM用。会場備付がない場合）</li>
+      </ul>
+    </div>
+
+    <div class="card info">
+      <h3>備品管理のポイント</h3>
+      <ul>
+        <li>備品は<strong>専用Excelで在庫管理</strong>（誰が何を持っているか）</li>
+        <li>前回の使用数から次回の必要数を逆算</li>
+        <li>購入が必要な場合は<strong>開催2週間前</strong>までに発注</li>
+        <li>当日は備品の搬入担当を明確に決める</li>
+        <li>予算目安：約4,000〜16,000円（規模により変動）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 11. 振り返り・改善 ===== -->
+  <div class="section" id="lessons">
+    <h2 class="section-title">過去の振り返り・改善ベストプラクティス</h2>
+
+    <p style="margin-bottom:1rem;color:var(--text-light);">5回分のオフ会から得られた知見を集約。新しい回の学びほど優先度が高い。</p>
+
+    <button class="accordion-header" onclick="toggleAccordion(this)">
+      受付・名簿管理 <span class="arrow">▼</span>
+    </button>
+    <div class="accordion-body">
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>スプレッドシートで名簿管理</strong>（紙不要）。QRコード受付は廃止 → 手動チェックの方が早い</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>4窓口体制</strong>（頭文字で振り分け）で待ち時間を大幅削減</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>名札あいうえお順ソート</strong> → 受付時の検索が爆速に</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>名札両面印刷</strong> + ジャンル記載 → マッチング効率UP</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>ローテーション3部制</strong> → スタッフの負荷分散&交流参加も可能に</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>UTAGE等の決済システムと名簿の事前照合を必ず行う</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>当日申込フロー（QRコード決済）を事前に確定しておく</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>名札紐が絡まりやすい → 事前にほどいて1枚ずつ準備</div></div>
+    </div>
+
+    <button class="accordion-header" onclick="toggleAccordion(this)">
+      会場・レイアウト <span class="arrow">▼</span>
+    </button>
+    <div class="accordion-body">
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>島型配置（6〜8人）</strong>が交流に最適</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>レイアウト図を事前共有</strong> → 当日の配置がスムーズ</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>席替え30分ルール</strong> → 多くの人と交流できると好評</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>エレベーターホールが狭い会場ではエントランス係が必須</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>懇親会入場時に入口で滞留 → アナウンスで分散入場を促す</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>荷物置き場（クローク）は懇親会会場で確保</div></div>
+    </div>
+
+    <button class="accordion-header" onclick="toggleAccordion(this)">
+      司会・進行 <span class="arrow">▼</span>
+    </button>
+    <div class="accordion-body">
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>司会2名体制</strong>（MC + タイムキーパー/スライド）が安定</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div>アイスブレイクは質問投げかけ形式が盛り上がる</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div>カウントダウンタイマー表示で時間管理を可視化</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>BGMを忘れがち → 事前に準備リストに入れる</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>ラストオーダー声かけを忘れがち → タイマーセット</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>司会経験者が望ましい。初めての場合はサブからスタート</div></div>
+    </div>
+
+    <button class="accordion-header" onclick="toggleAccordion(this)">
+      撮影 <span class="arrow">▼</span>
+    </button>
+    <div class="accordion-body">
+      <div class="improvement-item"><div class="icon">✅</div><div>チーム打ち合わせで画角・分担を決めておくとスムーズ</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div>インタビューは懇親会（お酒後）が自然体でいい内容に</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>Googleフォトの共有フォルダは事前に作成・テスト</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>顔出しNG（黄ハチマキ）の方の映り込みに細心の注意</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>カメラ設定を統一して色味・解像度のバラつきを防ぐ</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>インタビューの質問事項は固定テンプレ化すると効率的</div></div>
+    </div>
+
+    <button class="accordion-header" onclick="toggleAccordion(this)">
+      コミュニケーション・その他 <span class="arrow">▼</span>
+    </button>
+    <div class="accordion-body">
+      <div class="improvement-item"><div class="icon">✅</div><div><strong>孤立者への声かけ</strong> → スタッフが気づいたらグループに誘導</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div>スタッフメリットを事前に周知 → モチベーション向上</div></div>
+      <div class="improvement-item"><div class="icon">✅</div><div>事前MTGは最低2回（キックオフ + 前日）+ アーカイブ動画共有</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>定期的に進捗をDiscordで伝達 → スタッフの不安を解消</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>NotebookLMに情報集約 → 新しいスタッフがキャッチアップしやすい</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>ゴミの持ち帰りアナウンスを忘れずに</div></div>
+      <div class="improvement-item"><div class="icon">⚠️</div><div>振り返りシートの記入を当日中〜翌日に依頼（鮮度が大事）</div></div>
+    </div>
+  </div>
+
+  <!-- ===== 12. チェックリスト ===== -->
+  <div class="section" id="checklist">
+    <h2 class="section-title">当日チェックリスト</h2>
+
+    <div class="card">
+      <h3>開催2週間前</h3>
+      <ul class="checklist" id="cl-2w">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>運営スタッフの募集・確定</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>役割分担の決定</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>キックオフMTGの実施</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>会場の下見（可能であれば）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>備品の在庫確認・発注</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>スライド作成開始</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>参加者名簿の作成開始</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>開催1週間前</h3>
+      <ul class="checklist" id="cl-1w">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>名簿のファイナライズ（決済リストと照合）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>名札データ作成・印刷</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>スライド完成・レビュー</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>タイムテーブル確定・共有</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>ゲストとの最終すり合わせ</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>備品の搬入担当決定</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>駅→会場のルート案内作成・共有</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>前日</h3>
+      <ul class="checklist" id="cl-1d">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>最終MTG実施（前日リハーサル）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>名簿の最終更新（キャンセル・追加反映）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>備品の最終チェック・梱包</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>ゲスト用飲み物の購入</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>Googleフォト共有フォルダ作成</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>当日の緊急連絡先一覧をDiscordに投稿</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>充電器・モバイルバッテリーの充電</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>当日（準備〜開場前）</h3>
+      <ul class="checklist" id="cl-day">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>スタッフ集合・顔合わせ</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>赤ハチマキ配布・着用</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>PC接続・スライド投映テスト</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>マイク・スピーカーの動作テスト</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>Wi-Fi接続テスト</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>受付テーブル配置・名札セット</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>レイアウト確認（島型配置）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>主宰・ゲスト用テーブルセット</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>案内板設置（ビル入口・フロア入口）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>BGM準備</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>エントランス係を配置</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>作業会中</h3>
+      <ul class="checklist" id="cl-work">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>受付：名簿チェック漏れなし</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>司会：注意事項アナウンス完了</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>集合写真撮影</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>アイスブレイク実施</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>席替えアナウンス（30分ごと）</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>スペシャルコンテンツ実施</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>アンケート案内</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>懇親会会場案内</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>忘れ物チェック</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>原状復帰・完全撤収</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>懇親会</h3>
+      <ul class="checklist" id="cl-party">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>懇親会受付完了</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>当日追加参加の決済対応</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>乾杯挨拶</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>ラストオーダーアナウンス</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>締めの挨拶</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>忘れ物チェック</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>完全撤収</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>終了後</h3>
+      <ul class="checklist" id="cl-after">
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>集合写真をDiscordに共有</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>Googleフォトに写真アップロード</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>振り返りシートの記入依頼</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>備品の回収・在庫記録更新</li>
+        <li onclick="toggleCheck(this)"><span class="check-icon"></span>スタッフお疲れさまメッセージ</li>
+      </ul>
+    </div>
+
+    <div style="text-align:center;margin:1.5rem 0;">
+      <button onclick="resetAllChecks()" style="padding:0.6rem 1.5rem;background:var(--text-light);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;">チェックをすべてリセット</button>
+    </div>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()" title="印刷 / PDF保存">🖨</button>
+
+</div><!-- end #manual-content -->
+
+<script>
+// ===== PASSWORD CHECK (SHA-256) =====
+const CORRECT_HASH = 'a0f3285b07c26c0dcd2191447f391170d06035e8d57e31a048ba87074f3a9a15';
+
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('password-input').value;
+  const hash = await sha256(input);
+
+  if (hash === CORRECT_HASH) {
+    const loginScreen = document.getElementById('login-screen');
+    const content = document.getElementById('manual-content');
+    loginScreen.classList.add('fade-out');
+    setTimeout(() => {
+      loginScreen.style.display = 'none';
+      content.style.display = 'block';
+      requestAnimationFrame(() => {
+        content.classList.add('fade-in');
+      });
+    }, 600);
+  } else {
+    const card = document.getElementById('login-card');
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = 'パスワードが違います';
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 500);
+  }
+}
+
+document.getElementById('password-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkPassword();
+});
+
+// ===== Navigation =====
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== Checklist =====
+function toggleCheck(li) {
+  li.classList.toggle('checked');
+  const icon = li.querySelector('.check-icon');
+  icon.textContent = li.classList.contains('checked') ? '✓' : '';
+  saveCheckState();
+}
+
+function saveCheckState() {
+  const state = {};
+  document.querySelectorAll('.checklist').forEach(ul => {
+    const id = ul.id;
+    state[id] = [];
+    ul.querySelectorAll('li').forEach((li, i) => {
+      if (li.classList.contains('checked')) state[id].push(i);
+    });
+  });
+  localStorage.setItem('urakata-checklist', JSON.stringify(state));
+}
+
+function loadCheckState() {
+  const data = localStorage.getItem('urakata-checklist');
+  if (!data) return;
+  const state = JSON.parse(data);
+  Object.keys(state).forEach(id => {
+    const ul = document.getElementById(id);
+    if (!ul) return;
+    const items = ul.querySelectorAll('li');
+    state[id].forEach(i => {
+      if (items[i]) {
+        items[i].classList.add('checked');
+        items[i].querySelector('.check-icon').textContent = '✓';
+      }
+    });
+  });
+}
+
+function resetAllChecks() {
+  if (!confirm('すべてのチェックをリセットしますか？')) return;
+  document.querySelectorAll('.checklist li').forEach(li => {
+    li.classList.remove('checked');
+    li.querySelector('.check-icon').textContent = '';
+  });
+  localStorage.removeItem('urakata-checklist');
+}
+
+// ===== Accordion =====
+function toggleAccordion(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ===== Search =====
+function searchContent(query) {
+  if (!query.trim()) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelector('.section').classList.add('active');
+    document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+    document.querySelector('.nav-container button').classList.add('active');
+    document.querySelectorAll('.search-highlight').forEach(el => {
+      el.outerHTML = el.textContent;
+    });
+    return;
+  }
+  document.querySelectorAll('.section').forEach(s => s.classList.add('active'));
+  document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', loadCheckState);
+</script>
+</body>
+</html>
