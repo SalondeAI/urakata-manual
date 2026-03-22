@@ -22,9 +22,10 @@
     pointer-events: none;
   }
   .login-card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(30,30,60,0.92);
+    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 20px;
     padding: 3rem 2.5rem;
     text-align: center;
@@ -589,19 +590,19 @@
   <p>最終更新: 2026年3月22日 ｜ 第5回東京オフ会（3/21）実績ベース</p>
 </div>
 <div class="nav-container" id="nav">
-  <button class="active" onclick="showSection('overview')">全体概要</button>
-  <button onclick="showSection('org')">運営体制</button>
-  <button onclick="showSection('timetable')">タイムテーブル</button>
-  <button onclick="showSection('mc')">司会進行</button>
-  <button onclick="showSection('reception')">受付</button>
-  <button onclick="showSection('venue')">会場</button>
-  <button onclick="showSection('entrance')">エントランス</button>
-  <button onclick="showSection('photo')">撮影</button>
-  <button onclick="showSection('guest')">ゲストアテンド</button>
-  <button onclick="showSection('supplies')">備品</button>
-  <button onclick="showSection('lessons')">振り返り・改善</button>
-  <button onclick="showSection('checklist')">チェックリスト</button>
-  <button onclick="showSection('chatbot')">質問する</button>
+  <button class="active" onclick="showSection('overview',this)">全体概要</button>
+  <button onclick="showSection('org',this)">運営体制</button>
+  <button onclick="showSection('timetable',this)">タイムテーブル</button>
+  <button onclick="showSection('mc',this)">司会進行</button>
+  <button onclick="showSection('reception',this)">受付</button>
+  <button onclick="showSection('venue',this)">会場</button>
+  <button onclick="showSection('entrance',this)">エントランス</button>
+  <button onclick="showSection('photo',this)">撮影</button>
+  <button onclick="showSection('guest',this)">ゲストアテンド</button>
+  <button onclick="showSection('supplies',this)">備品</button>
+  <button onclick="showSection('lessons',this)">振り返り・改善</button>
+  <button onclick="showSection('checklist',this)">チェックリスト</button>
+  <button onclick="showSection('chatbot',this)">質問する</button>
 </div>
 </div><!-- end top-fixed-wrapper -->
 
@@ -1392,39 +1393,53 @@
 </div><!-- end #manual-content -->
 
 <script>
-// ===== PASSWORD CHECK (SHA-256) =====
-const CORRECT_HASH = '8a76f934cc4cecd312f1d755a160be75d8e6731948ec7b07e4e2cc54db866e2a';
+// ===== PASSWORD CHECK =====
+var CORRECT_HASH = '8a76f934cc4cecd312f1d755a160be75d8e6731948ec7b07e4e2cc54db866e2a';
+var CORRECT_PW_B64 = 'dXJha2F0YQ=='; // base64 fallback
 
-async function sha256(message) {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+function sha256(message) {
+  try {
+    var msgBuffer = new TextEncoder().encode(message);
+    return crypto.subtle.digest('SHA-256', msgBuffer).then(function(hashBuffer) {
+      var hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    });
+  } catch(e) {
+    return Promise.resolve(null);
+  }
 }
 
-async function checkPassword() {
-  const input = document.getElementById('password-input').value;
-  const hash = await sha256(input);
+function checkPassword() {
+  var input = document.getElementById('password-input').value;
+  sha256(input).then(function(hash) {
+    var isCorrect = false;
+    if (hash !== null) {
+      isCorrect = (hash === CORRECT_HASH);
+    } else {
+      // Fallback: base64 comparison when crypto.subtle is unavailable
+      try { isCorrect = (btoa(input) === CORRECT_PW_B64); } catch(e) { isCorrect = false; }
+    }
 
-  if (hash === CORRECT_HASH) {
-    const loginScreen = document.getElementById('login-screen');
-    const content = document.getElementById('manual-content');
-    loginScreen.classList.add('fade-out');
-    setTimeout(() => {
-      loginScreen.style.display = 'none';
-      content.style.display = 'block';
-      requestAnimationFrame(() => {
-        content.classList.add('fade-in');
-        adjustMainPadding();
-      });
-    }, 600);
-  } else {
-    const card = document.getElementById('login-card');
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = 'パスワードが違います';
-    card.classList.add('shake');
-    setTimeout(() => card.classList.remove('shake'), 500);
-  }
+    if (isCorrect) {
+      var loginScreen = document.getElementById('login-screen');
+      var content = document.getElementById('manual-content');
+      loginScreen.classList.add('fade-out');
+      setTimeout(function() {
+        loginScreen.style.display = 'none';
+        content.style.display = 'block';
+        setTimeout(function() {
+          content.classList.add('fade-in');
+          adjustMainPadding();
+        }, 50);
+      }, 600);
+    } else {
+      var card = document.getElementById('login-card');
+      var errorMsg = document.getElementById('error-msg');
+      errorMsg.textContent = 'パスワードが違います';
+      card.classList.add('shake');
+      setTimeout(function() { card.classList.remove('shake'); }, 500);
+    }
+  });
 }
 
 document.getElementById('password-input').addEventListener('keydown', function(e) {
@@ -1432,85 +1447,97 @@ document.getElementById('password-input').addEventListener('keydown', function(e
 });
 
 // ===== Navigation =====
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+function showSection(id, btn) {
+  var sections = document.querySelectorAll('.section');
+  for (var i = 0; i < sections.length; i++) sections[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  var buttons = document.querySelectorAll('.nav-container button');
+  for (var j = 0; j < buttons.length; j++) buttons[j].classList.remove('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 // ===== Checklist =====
 function toggleCheck(li) {
   li.classList.toggle('checked');
-  const icon = li.querySelector('.check-icon');
+  var icon = li.querySelector('.check-icon');
   icon.textContent = li.classList.contains('checked') ? '✓' : '';
   saveCheckState();
 }
 
 function saveCheckState() {
-  const state = {};
-  document.querySelectorAll('.checklist').forEach(ul => {
-    const id = ul.id;
+  var state = {};
+  var uls = document.querySelectorAll('.checklist');
+  for (var u = 0; u < uls.length; u++) {
+    var id = uls[u].id;
     state[id] = [];
-    ul.querySelectorAll('li').forEach((li, i) => {
-      if (li.classList.contains('checked')) state[id].push(i);
-    });
-  });
+    var lis = uls[u].querySelectorAll('li');
+    for (var l = 0; l < lis.length; l++) {
+      if (lis[l].classList.contains('checked')) state[id].push(l);
+    }
+  }
   localStorage.setItem('urakata-checklist', JSON.stringify(state));
 }
 
 function loadCheckState() {
-  const data = localStorage.getItem('urakata-checklist');
+  var data = localStorage.getItem('urakata-checklist');
   if (!data) return;
-  const state = JSON.parse(data);
-  Object.keys(state).forEach(id => {
-    const ul = document.getElementById(id);
-    if (!ul) return;
-    const items = ul.querySelectorAll('li');
-    state[id].forEach(i => {
-      if (items[i]) {
-        items[i].classList.add('checked');
-        items[i].querySelector('.check-icon').textContent = '✓';
+  var state = JSON.parse(data);
+  var keys = Object.keys(state);
+  for (var k = 0; k < keys.length; k++) {
+    var id = keys[k];
+    var ul = document.getElementById(id);
+    if (!ul) continue;
+    var items = ul.querySelectorAll('li');
+    for (var n = 0; n < state[id].length; n++) {
+      var idx = state[id][n];
+      if (items[idx]) {
+        items[idx].classList.add('checked');
+        items[idx].querySelector('.check-icon').textContent = '✓';
       }
-    });
-  });
+    }
+  }
 }
 
 function resetAllChecks() {
   if (!confirm('すべてのチェックをリセットしますか？')) return;
-  document.querySelectorAll('.checklist li').forEach(li => {
-    li.classList.remove('checked');
-    li.querySelector('.check-icon').textContent = '';
-  });
+  var lis = document.querySelectorAll('.checklist li');
+  for (var i = 0; i < lis.length; i++) {
+    lis[i].classList.remove('checked');
+    lis[i].querySelector('.check-icon').textContent = '';
+  }
   localStorage.removeItem('urakata-checklist');
 }
 
 // ===== Accordion =====
 function toggleAccordion(header) {
   header.classList.toggle('open');
-  const body = header.nextElementSibling;
+  var body = header.nextElementSibling;
   body.classList.toggle('open');
 }
 
 // ===== Search =====
 function searchContent(query) {
+  var i;
   if (!query.trim()) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    var secs = document.querySelectorAll('.section');
+    for (i = 0; i < secs.length; i++) secs[i].classList.remove('active');
     document.querySelector('.section').classList.add('active');
-    document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+    var btns = document.querySelectorAll('.nav-container button');
+    for (i = 0; i < btns.length; i++) btns[i].classList.remove('active');
     document.querySelector('.nav-container button').classList.add('active');
-    document.querySelectorAll('.search-highlight').forEach(el => {
-      el.outerHTML = el.textContent;
-    });
+    var hls = document.querySelectorAll('.search-highlight');
+    for (i = 0; i < hls.length; i++) hls[i].outerHTML = hls[i].textContent;
     return;
   }
-  document.querySelectorAll('.section').forEach(s => s.classList.add('active'));
-  document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+  var allSecs = document.querySelectorAll('.section');
+  for (i = 0; i < allSecs.length; i++) allSecs[i].classList.add('active');
+  var allBtns = document.querySelectorAll('.nav-container button');
+  for (i = 0; i < allBtns.length; i++) allBtns[i].classList.remove('active');
 }
 
 // ===== Chatbot =====
-const knowledgeBase = [
+var knowledgeBase = [
   { keywords: ['目的','オフ会とは','概要','何'], answer: 'オフ会の目的は、コンテンツホルダー（経営者）とウラカタ（裏方人材）のリアルマッチングの場です。\nオンラインでは生まれにくい深い繋がりを作り、実際のビジネスマッチングにつなげることを目指しています。\n\n構成：\n・作業会（交流会）：アイスブレイク→自由交流→スペシャルコンテンツ\n・懇親会：飲食を伴うカジュアルな交流\n・二次会：任意参加の延長交流' },
   { keywords: ['開催実績','規模','過去','何回','人数推移'], answer: '開催実績：\n・第1回（2025/10/27）東京・品川：スタッフ23名\n・第2回（2025/11/29）大阪：作業会36名、懇親会38名、スタッフ13名\n・第3回（2025/12/8）東京・品川：作業会59名、懇親会46名、スタッフ7名\n・第4回（2026/1/19）東京・品川：作業会59名、懇親会46名、スタッフ8名\n・第5回（2026/3/21）東京・新橋：作業会137名、懇親会117名、スタッフ18名' },
   { keywords: ['名札','紐','色','属性','識別'], answer: '名札紐の色で参加者の属性を識別します：\n・赤：コンテンツホルダー＆経営者\n・青：ウラカタ\n・黄：ウラカタ兼ホルダー\n\n名札は両面印刷で、ジャンル・得意分野も記載してマッチング促進。あいうえお順に仕分けし、空白の予備も数枚用意します。' },
@@ -1559,29 +1586,28 @@ const knowledgeBase = [
 ];
 
 function sendChat() {
-  const input = document.getElementById('chat-input');
-  const q = input.value.trim();
+  var input = document.getElementById('chat-input');
+  var q = input.value.trim();
   if (!q) return;
   input.value = '';
   addMsg(q, 'user');
-  // typing indicator
-  const typing = document.createElement('div');
+  var typing = document.createElement('div');
   typing.className = 'chat-msg bot';
   typing.innerHTML = '<div class="chat-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>';
-  const area = document.getElementById('chat-area');
+  var area = document.getElementById('chat-area');
   area.appendChild(typing);
   area.scrollTop = area.scrollHeight;
 
-  setTimeout(() => {
-    typing.remove();
-    const answer = findAnswer(q);
+  setTimeout(function() {
+    if (typing.parentNode) typing.parentNode.removeChild(typing);
+    var answer = findAnswer(q);
     addMsg(answer, 'bot');
   }, 600);
 }
 
 function addMsg(text, type) {
-  const area = document.getElementById('chat-area');
-  const div = document.createElement('div');
+  var area = document.getElementById('chat-area');
+  var div = document.createElement('div');
   div.className = 'chat-msg ' + type;
   div.innerHTML = '<div class="chat-bubble">' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
   area.appendChild(div);
@@ -1589,11 +1615,12 @@ function addMsg(text, type) {
 }
 
 function findAnswer(query) {
-  let best = null, bestScore = 0;
-  for (const entry of knowledgeBase) {
-    let score = 0;
-    for (const kw of entry.keywords) {
-      if (query.includes(kw)) score++;
+  var best = null, bestScore = 0;
+  for (var i = 0; i < knowledgeBase.length; i++) {
+    var entry = knowledgeBase[i];
+    var score = 0;
+    for (var j = 0; j < entry.keywords.length; j++) {
+      if (query.indexOf(entry.keywords[j]) !== -1) score++;
     }
     if (score > bestScore) { bestScore = score; best = entry; }
   }
@@ -1609,10 +1636,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function adjustMainPadding() {
-  const topFixed = document.getElementById('top-fixed');
-  const main = document.querySelector('.main');
-  if (topFixed && main) {
-    main.style.paddingTop = (topFixed.offsetHeight + 16) + 'px';
+  var topFixed = document.getElementById('top-fixed');
+  var mainEl = document.querySelector('.main');
+  if (topFixed && mainEl) {
+    mainEl.style.paddingTop = (topFixed.offsetHeight + 16) + 'px';
   }
 }
 </script>
