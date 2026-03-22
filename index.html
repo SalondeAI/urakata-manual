@@ -153,38 +153,35 @@
     line-height: 1.7;
   }
 
-  .header {
-    background: linear-gradient(135deg, var(--primary), var(--accent2));
-    color: white;
-    padding: 1rem 2rem;
-    text-align: center;
+  .top-fixed-wrapper {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 200;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--accent2));
+    color: white;
+    padding: 0.6rem 1rem;
+    text-align: center;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
   .header h1 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: 0.05em;
   }
   .header p {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     opacity: 0.8;
-    margin-top: 0.2rem;
+    margin-top: 0.1rem;
   }
 
   .nav-container {
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
     padding: 0.4rem 0.8rem;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    right: 0;
-    z-index: 199;
     overflow-x: auto;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -193,14 +190,14 @@
 
   .nav-container button {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    margin: 0.2rem;
+    padding: 0.45rem 0.8rem;
+    margin: 0.15rem;
     border: none;
     background: var(--bg);
     color: var(--text);
     border-radius: 20px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     transition: all 0.2s;
     white-space: nowrap;
@@ -215,7 +212,7 @@
     max-width: 960px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
-    padding-top: 110px;
+    padding-top: 20px;
   }
 
   .section {
@@ -454,16 +451,15 @@
   .search-box:focus { border-color: var(--accent); }
 
   @media (max-width: 600px) {
-    .header { padding: 0.7rem 1rem; }
-    .header h1 { font-size: 1.1rem; }
-    .header p { font-size: 0.7rem; }
-    .nav-container { top: 48px; padding: 0.3rem 0.5rem; }
-    .nav-container button { font-size: 0.68rem; padding: 0.35rem 0.6rem; margin: 0.15rem; }
-    .main { padding-top: 95px; }
+    .header { padding: 0.5rem 0.8rem; }
+    .header h1 { font-size: 1rem; }
+    .header p { font-size: 0.65rem; }
+    .nav-container { padding: 0.3rem 0.5rem; }
+    .nav-container button { font-size: 0.65rem; padding: 0.3rem 0.55rem; margin: 0.1rem; }
     .card { padding: 0.8rem; }
-    .section-title { font-size: 1.15rem; }
-    table { font-size: 0.75rem; }
-    th, td { padding: 0.35rem 0.4rem; }
+    .section-title { font-size: 1.1rem; }
+    table { font-size: 0.72rem; }
+    th, td { padding: 0.3rem 0.4rem; }
     .chat-area { height: 350px; }
     .chat-bubble { max-width: 90%; font-size: 0.85rem; }
     .chat-input-row input { font-size: 0.85rem; padding: 0.6rem 0.8rem; }
@@ -474,8 +470,7 @@
   }
 
   @media print {
-    .header { position: static; }
-    .nav-container { position: static; }
+    .top-fixed-wrapper { position: static; }
     .nav-container, .print-btn, .search-box { display: none; }
     .section { display: block !important; page-break-inside: avoid; }
     .section-title { page-break-after: avoid; }
@@ -588,11 +583,11 @@
 <!-- ===== MANUAL CONTENT ===== -->
 <div id="manual-content">
 
+<div class="top-fixed-wrapper" id="top-fixed">
 <div class="header">
   <h1>ウラカタマッチングサロン オフ会運営マニュアル</h1>
   <p>最終更新: 2026年3月22日 ｜ 第5回東京オフ会（3/21）実績ベース</p>
 </div>
-
 <div class="nav-container" id="nav">
   <button class="active" onclick="showSection('overview')">全体概要</button>
   <button onclick="showSection('org')">運営体制</button>
@@ -608,6 +603,7 @@
   <button onclick="showSection('checklist')">チェックリスト</button>
   <button onclick="showSection('chatbot')">質問する</button>
 </div>
+</div><!-- end top-fixed-wrapper -->
 
 <div class="main">
   <input type="text" class="search-box" placeholder="キーワードで検索..." oninput="searchContent(this.value)">
@@ -1419,6 +1415,7 @@ async function checkPassword() {
       content.style.display = 'block';
       requestAnimationFrame(() => {
         content.classList.add('fade-in');
+        adjustMainPadding();
       });
     }, 600);
   } else {
@@ -1605,7 +1602,19 @@ function findAnswer(query) {
 }
 
 // ===== Init =====
-document.addEventListener('DOMContentLoaded', loadCheckState);
+document.addEventListener('DOMContentLoaded', function() {
+  loadCheckState();
+  adjustMainPadding();
+  window.addEventListener('resize', adjustMainPadding);
+});
+
+function adjustMainPadding() {
+  const topFixed = document.getElementById('top-fixed');
+  const main = document.querySelector('.main');
+  if (topFixed && main) {
+    main.style.paddingTop = (topFixed.offsetHeight + 16) + 'px';
+  }
+}
 </script>
 </body>
 </html>
