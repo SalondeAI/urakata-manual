@@ -156,7 +156,7 @@
   .header {
     background: linear-gradient(135deg, var(--primary), var(--accent2));
     color: white;
-    padding: 2rem;
+    padding: 1rem 2rem;
     text-align: center;
     position: fixed;
     top: 0;
@@ -166,28 +166,29 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
   .header h1 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: 0.05em;
   }
   .header p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     opacity: 0.8;
-    margin-top: 0.3rem;
+    margin-top: 0.2rem;
   }
 
   .nav-container {
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     position: fixed;
-    top: 80px;
+    top: 60px;
     left: 0;
     right: 0;
     z-index: 199;
     overflow-x: auto;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    -webkit-overflow-scrolling: touch;
   }
 
   .nav-container button {
@@ -214,7 +215,7 @@
     max-width: 960px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
-    padding-top: 60px;
+    padding-top: 110px;
   }
 
   .section {
@@ -453,11 +454,23 @@
   .search-box:focus { border-color: var(--accent); }
 
   @media (max-width: 600px) {
-    .header h1 { font-size: 1.2rem; }
-    .nav-container button { font-size: 0.72rem; padding: 0.4rem 0.7rem; }
-    .card { padding: 1rem; }
-    table { font-size: 0.78rem; }
-    th, td { padding: 0.4rem 0.5rem; }
+    .header { padding: 0.7rem 1rem; }
+    .header h1 { font-size: 1.1rem; }
+    .header p { font-size: 0.7rem; }
+    .nav-container { top: 48px; padding: 0.3rem 0.5rem; }
+    .nav-container button { font-size: 0.68rem; padding: 0.35rem 0.6rem; margin: 0.15rem; }
+    .main { padding-top: 95px; }
+    .card { padding: 0.8rem; }
+    .section-title { font-size: 1.15rem; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 0.35rem 0.4rem; }
+    .chat-area { height: 350px; }
+    .chat-bubble { max-width: 90%; font-size: 0.85rem; }
+    .chat-input-row input { font-size: 0.85rem; padding: 0.6rem 0.8rem; }
+    .chat-input-row button { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
+    .login-card { padding: 2rem 1.5rem; }
+    .login-card h1 { font-size: 1.2rem; }
+    .lock-icon { width: 55px; height: 55px; font-size: 1.5rem; }
   }
 
   @media print {
