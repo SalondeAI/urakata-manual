@@ -158,9 +158,11 @@
     color: white;
     padding: 2rem;
     text-align: center;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 200;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
   .header h1 {
@@ -178,13 +180,16 @@
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
     padding: 0.5rem 1rem;
-    position: sticky;
+    position: fixed;
     top: 80px;
-    z-index: 99;
+    left: 0;
+    right: 0;
+    z-index: 199;
     overflow-x: auto;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
+
   .nav-container button {
     display: inline-block;
     padding: 0.5rem 1rem;
@@ -209,6 +214,7 @@
     max-width: 960px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
+    padding-top: 60px;
   }
 
   .section {
@@ -456,6 +462,7 @@
 
   @media print {
     .header { position: static; }
+    .nav-container { position: static; }
     .nav-container, .print-btn, .search-box { display: none; }
     .section { display: block !important; page-break-inside: avoid; }
     .section-title { page-break-after: avoid; }
@@ -466,6 +473,87 @@
   .highlight { background: #fff3cd; padding: 0.1rem 0.2rem; border-radius: 3px; }
   .flex-row { display: flex; gap: 1rem; flex-wrap: wrap; }
   .flex-row .card { flex: 1; min-width: 280px; }
+
+  /* ===== CHATBOT STYLES ===== */
+  .chatbot-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .chat-area {
+    height: 450px;
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .chat-msg {
+    display: flex;
+    margin-bottom: 0.8rem;
+    animation: fadeIn 0.3s ease;
+  }
+  .chat-msg.bot { justify-content: flex-start; }
+  .chat-msg.user { justify-content: flex-end; }
+  .chat-bubble {
+    max-width: 80%;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  .chat-msg.bot .chat-bubble {
+    background: var(--accent);
+    color: white;
+    border-bottom-left-radius: 4px;
+  }
+  .chat-msg.user .chat-bubble {
+    background: #0984e3;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .chat-input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .chat-input-row input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input-row input:focus { border-color: var(--accent); }
+  .chat-input-row button {
+    padding: 0.7rem 1.2rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .chat-input-row button:hover { background: #c0392b; }
+  .typing-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: dotBounce 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+  }
 </style>
 </head>
 <body>
@@ -505,6 +593,7 @@
   <button onclick="showSection('supplies')">備品</button>
   <button onclick="showSection('lessons')">振り返り・改善</button>
   <button onclick="showSection('checklist')">チェックリスト</button>
+  <button onclick="showSection('chatbot')">質問する</button>
 </div>
 
 <div class="main">
@@ -1270,6 +1359,23 @@
       <button onclick="resetAllChecks()" style="padding:0.6rem 1.5rem;background:var(--text-light);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;">チェックをすべてリセット</button>
     </div>
   </div>
+
+  <!-- ===== 13. チャットボット ===== -->
+  <div class="section" id="chatbot">
+    <h2 class="section-title">AIアシスタント</h2>
+    <div class="chatbot-container">
+      <div class="chat-area" id="chat-area">
+        <div class="chat-msg bot">
+          <div class="chat-bubble">ウラカタマッチングサロンのオフ会運営マニュアルについて質問してください！
+例：「受付の流れは？」「備品リストは？」「撮影の注意点は？」</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="質問を入力..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">送信</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <button class="print-btn" onclick="window.print()" title="印刷 / PDF保存">🖨</button>
@@ -1391,6 +1497,98 @@ function searchContent(query) {
   }
   document.querySelectorAll('.section').forEach(s => s.classList.add('active'));
   document.querySelectorAll('.nav-container button').forEach(b => b.classList.remove('active'));
+}
+
+// ===== Chatbot =====
+const knowledgeBase = [
+  { keywords: ['目的','オフ会とは','概要','何'], answer: 'オフ会の目的は、コンテンツホルダー（経営者）とウラカタ（裏方人材）のリアルマッチングの場です。\nオンラインでは生まれにくい深い繋がりを作り、実際のビジネスマッチングにつなげることを目指しています。\n\n構成：\n・作業会（交流会）：アイスブレイク→自由交流→スペシャルコンテンツ\n・懇親会：飲食を伴うカジュアルな交流\n・二次会：任意参加の延長交流' },
+  { keywords: ['開催実績','規模','過去','何回','人数推移'], answer: '開催実績：\n・第1回（2025/10/27）東京・品川：スタッフ23名\n・第2回（2025/11/29）大阪：作業会36名、懇親会38名、スタッフ13名\n・第3回（2025/12/8）東京・品川：作業会59名、懇親会46名、スタッフ7名\n・第4回（2026/1/19）東京・品川：作業会59名、懇親会46名、スタッフ8名\n・第5回（2026/3/21）東京・新橋：作業会137名、懇親会117名、スタッフ18名' },
+  { keywords: ['名札','紐','色','属性','識別'], answer: '名札紐の色で参加者の属性を識別します：\n・赤：コンテンツホルダー＆経営者\n・青：ウラカタ\n・黄：ウラカタ兼ホルダー\n\n名札は両面印刷で、ジャンル・得意分野も記載してマッチング促進。あいうえお順に仕分けし、空白の予備も数枚用意します。' },
+  { keywords: ['顔出しNG','ハチマキ','黄色','撮影NG'], answer: '顔出しNGの方への配慮：\n・黄色いハチマキを着用 → 写真・動画への映り込みNG\n・写真アップロード時は黄色ハチマキの方の顔を隠す\n・受付時にハチマキを配布し、注意事項を口頭でも伝達' },
+  { keywords: ['運営原則','基本原則','心得'], answer: '運営の基本原則：\n1. 安全第一：参加者の安全と快適さが最優先\n2. 時間厳守：会場の撤収時間は絶対。逆算してスケジュール管理\n3. 声かけ文化：孤立者がいたら積極的に声をかける\n4. 柔軟対応：想定外のトラブルはチームで相談して解決\n5. 振り返り重視：毎回の学びを次回に活かす' },
+  { keywords: ['組織図','体制','役割分担','スタッフ','ポジション'], answer: '推奨体制：\n・全体統括：1〜2名（意思決定、主宰との連携）\n・リーダー：1名（現場指揮）\n・サブリーダー：1名（補佐、情報共有ハブ）\n・司会進行：2名（MC＋タイムキーパー）\n・受付係：6〜8名（名簿チェック、名札配布）\n・会場係：3〜5名（レイアウト、誘導）\n・エントランス係：2名（ビル入口案内）\n・撮影：2〜4名\n・ゲストアテンド：1〜2名\n・名札印刷：1名' },
+  { keywords: ['人数目安','スタッフ数','何人'], answer: 'スタッフ人数目安：\n・〜50名規模：スタッフ7〜10名（受付3名、会場2名）\n・50〜100名規模：スタッフ12〜15名（受付5名、会場3名）\n・100名超規模：スタッフ18名以上（受付8名、会場4名、エントランス2名が必須）' },
+  { keywords: ['連絡','Discord','MTG','連絡体制'], answer: '連絡体制：\n・Discord：運営専用チャンネルで事前〜当日の連携\n・事前MTG：最低2回（キックオフ＋前日最終確認）\n・当日：Discord＋口頭で臨機応変に\n・資料共有：Googleドライブに集約（進行表、名簿、マニュアル、スライド）' },
+  { keywords: ['赤ハチマキ','スタッフ識別','識別マーク'], answer: '識別マーク：\n・運営スタッフ：赤ハチマキを着用\n・顔出しNG参加者：黄ハチマキを着用\n・将来的には運営バッジの導入も検討中' },
+  { keywords: ['タイムテーブル','スケジュール','時間','流れ','タイムライン'], answer: '作業会スケジュール：\n13:00 スタッフ集合\n13:05 準備開始\n13:30 開場・受付スタート\n14:00 作業会スタート（開会挨拶・注意事項）\n14:07 主宰挨拶\n14:15 ゲスト紹介\n14:25 集合写真\n14:30 アイスブレイク\n14:50 交流タイム\n16:00 スペシャルコンテンツ\n17:00 懇親会案内・閉会\n17:05 片付け・完全撤収' },
+  { keywords: ['懇親会','スケジュール懇親','乾杯'], answer: '懇親会スケジュール：\n17:30 懇親会会場到着・準備\n17:40 開場・受付\n18:00 懇親会スタート（乾杯挨拶→自由交流）\n19:40 ラストオーダー\n19:45 締めの挨拶\n20:00 完全撤収\n\n注意：ラストオーダーの声かけは忘れがちなのでタイマーセット推奨' },
+  { keywords: ['席替え','ローテーション席'], answer: '席替えのポイント：\n・30分ごとに実施\n・簡単なルール（例：「右隣のテーブルへ」）で素早く\n・多くの人と交流できると好評' },
+  { keywords: ['撤収','片付け','原状復帰'], answer: '撤収のポイント：\n・会場契約時間の15分前には原状復帰完了を目標\n・忘れ物チェック：全テーブル・椅子下を確認\n・テーブル・椅子を元の配置に戻す\n・ゴミの持ち帰りアナウンスを忘れずに' },
+  { keywords: ['司会','MC','進行'], answer: '司会進行チーム：\n・MC（司会）1名＋司会補佐（タイムキーパー）1名の2名体制\n・司会と受付の兼任は避ける（過去の教訓：両立困難）\n\n事前準備：\n・スライド投映チェック、マイク・スピーカーテスト\n・Wi-Fi情報確認、BGM準備\n・主宰・登壇者との進行すり合わせ\n・アイスブレイクテーマ決定（2〜3個）\n・カウントダウンタイマー準備' },
+  { keywords: ['台本','進行台本','アナウンス'], answer: '進行台本（標準）：\n14:00 開会「ウラカタマッチングサロン第○回オフ会へようこそ！」注意事項案内\n14:07 主宰挨拶：まーしーさん・まぎーさんを紹介\n14:15 ゲスト紹介：プロフィール読み上げ\n14:25 集合写真：「皆さまお立ちください」撮影隊へ合図\n14:30 アイスブレイク：テーマ発表、5分×2〜3テーマ\n14:50 交流タイム：30分ごとに席替えアナウンス\n16:00 対談/セミナー：登壇者紹介、Q&Aファシリ\n17:00 閉会：懇親会案内、アンケート依頼' },
+  { keywords: ['マイク','スピーカー','音響','BGM'], answer: '音響関連：\n・マイク・スピーカーは必ず事前テスト（過去にマイクの使い方不明で開始遅延）\n・BGMはSpotify等の著作権フリー音源を事前準備\n・ポータブルスピーカー：会場備付がない場合に持ち込み\n・BGMを忘れがちなので準備リストに入れる' },
+  { keywords: ['受付','名簿','チェック'], answer: '受付の流れ（100名超の場合）：\n1. 参加者到着→名前確認\n2. スプレッドシートで名簿チェック→チェックマーク\n3. 名札ホルダー（紐の色で属性別）を渡す\n4. 顔出しNGの方には黄色ハチマキ\n5. リストバンド配布（作業会/懇親会の区別用）\n6. 会場内へ案内\n\n体制：受付リーダー1名、名簿チェック4名（4窓口）、名札配布2名、事務1名' },
+  { keywords: ['名簿管理','スプレッドシート','窓口'], answer: '名簿管理のポイント：\n・Googleスプレッドシートで管理（紙は不要）\n・あいうえお順ソート→検索効率UP\n・4窓口に分割（頭文字で振り分け）→待ち時間削減\n・当日キャンセル・追加参加の列を別途用意\n・UTAGEなどの決済システムと名簿の照合を事前に済ませる' },
+  { keywords: ['受付ローテーション','受付交代','休憩'], answer: '受付ローテーション（3部制推奨）：\n・第1部（13:30〜14:30）：ピークタイム。全員配置\n・第2部（14:30〜16:00）：半数が交代で休憩・交流参加\n・第3部（16:00〜17:00）：最低2名で遅刻者・再入場対応\n\n受付は立ちっぱなしで負荷が高いため、ローテーションが重要です。' },
+  { keywords: ['受付テーブル','配置','動線'], answer: '受付テーブル配置：\n・会場内に設置（エレベーターホール前は狭くて滞留するため）\n・4窓口を横並びに配置（100名超の場合）\n・動線：入口→受付テーブル→名札受取→座席へ\n・テーブル前に「あ行〜」等の案内表示を掲示' },
+  { keywords: ['会場','レイアウト','島型','テーブル配置'], answer: '会場レイアウト：\n・島型配置（6〜8人掛け）が交流に最適\n・通路幅：人がすれ違える幅を確保\n・ゲスト用スペース：個別コンサル用の列整理スペースを確保\n・まぎーさん囲み会：椅子10脚を輪にして配置（テーブルなし）\n・レイアウト図を事前に作成・共有しておくとスムーズ' },
+  { keywords: ['会場タスク','会場係','誘導'], answer: '会場係のタスク：\n・レイアウト確認・調整\n・主宰・ゲスト用テーブルセット（飲み物を事前配置）\n・Wi-Fi確認→司会に共有\n・案内板設置\n・着席誘導・席替え誘導\n・クローク管理（懇親会会場）\n・忘れ物チェック\n・原状復帰' },
+  { keywords: ['エントランス','入口','案内','ビル'], answer: 'エントランスチーム：\n・100名超では必須\n・配置：ビル1Fエントランス＋会場フロアの2名\n・役割：参加者に声をかけて会場フロアへ案内、エレベーター案内、混雑時の滞留防止\n\n事前準備：\n・可能であればビル入口〜会場のルートを下見\n・駅から会場までのルート写真・動画をDiscordで共有\n・ビル入口に案内板を掲示' },
+  { keywords: ['撮影','カメラ','写真','動画','インタビュー'], answer: '撮影チーム：\n・リーダー1名、スチール写真1名、縦動画1名、横動画1名\n\n注意事項：\n・顔出しNG（黄ハチマキ）の方は絶対に映さない\n・カメラ設定を統一（解像度・色味）\n・インタビュー対象者リストを事前共有\n・Googleフォト共有アルバムを事前作成\n・集合写真は当日中にDiscordで共有\n・インタビューは懇親会（お酒後）が自然体で良い内容が撮れる' },
+  { keywords: ['撮影準備','撮影機材','三脚'], answer: '撮影の準備物：\n・スチール撮影機材（スマホ可。予備バッテリー必須）\n・動画撮影機材＋三脚/ジンバル\n・SDカード予備\n・インタビュー質問リスト（固定テンプレ推奨）\n・写真格納用Googleフォトフォルダ' },
+  { keywords: ['ゲスト','アテンド','送迎','おさる','コンサル'], answer: 'ゲストアテンドチーム：\n・ゲストの送迎（駅〜会場）\n・会場内での案内・席への誘導\n・飲み物・軽食の準備\n・個別コンサル時の列整理\n・スケジュール管理（退出時間等）\n\n事前準備：会場付近ルート下見、飲み物は前日購入、到着・退出時間確認\n\n個別コンサル（おさるさん方式）：\n・並び順で時間の限り対応（予約制ではない）\n・1人あたり5〜10分目安\n・列が長い場合は途中で締め切りアナウンス' },
+  { keywords: ['備品','リスト','持ち物','必要なもの'], answer: '必須備品（100名超）：\n【名札関連】名札ホルダー（赤・青・黄紐）＋20%予備\n【識別】赤ハチマキ（スタッフ数+5）、黄ハチマキ（20枚程度）\n【入場管理】リストバンド青（作業会用）、ゴールド（懇親会用）\n【文具】黒ネームペン10本、ボールペン10本、マーカー5本、ハサミ2〜3個、養生テープ2巻\n【その他】A4コピー用紙50枚、ゴミ袋10枚、ウェットティッシュ2パック' },
+  { keywords: ['機材','PC','HDMI','マイク機材'], answer: '機材リスト：\n・PC（スライド投映用）\n・HDMI変換アダプター（Type-C→HDMI）\n・延長コード\n・マイク（会場備付 or 持込。事前確認必須）\n・ポータブルスピーカー（BGM用。会場備付がない場合）' },
+  { keywords: ['備品管理','在庫','発注','予算'], answer: '備品管理のポイント：\n・専用Excelで在庫管理（誰が何を持っているか）\n・前回の使用数から次回の必要数を逆算\n・購入が必要な場合は開催2週間前までに発注\n・当日は備品の搬入担当を明確に決める\n・予算目安：約4,000〜16,000円（規模により変動）' },
+  { keywords: ['振り返り','改善','ベストプラクティス','教訓'], answer: '主な改善ベストプラクティス：\n【受付】スプレッドシート管理、4窓口体制、名札あいうえお順ソート、両面印刷、3部制ローテーション\n【会場】島型配置、レイアウト図事前共有、席替え30分ルール\n【司会】2名体制、質問投げかけ式アイスブレイク、カウントダウンタイマー\n【撮影】画角・分担の事前打ち合わせ、懇親会でのインタビューが自然体\n【その他】孤立者への声かけ、スタッフメリットの事前周知、事前MTG最低2回' },
+  { keywords: ['チェックリスト','2週間前','準備リスト'], answer: '2週間前チェックリスト：\n□ 運営スタッフの募集・確定\n□ 役割分担の決定\n□ キックオフMTGの実施\n□ 会場の下見\n□ 備品の在庫確認・発注\n□ スライド作成開始\n□ 参加者名簿の作成開始' },
+  { keywords: ['1週間前','一週間前'], answer: '1週間前チェックリスト：\n□ 名簿のファイナライズ（決済リストと照合）\n□ 名札データ作成・印刷\n□ スライド完成・レビュー\n□ タイムテーブル確定・共有\n□ ゲストとの最終すり合わせ\n□ 備品の搬入担当決定\n□ 駅→会場のルート案内作成・共有' },
+  { keywords: ['前日'], answer: '前日チェックリスト：\n□ 最終MTG実施（前日リハーサル）\n□ 名簿の最終更新（キャンセル・追加反映）\n□ 備品の最終チェック・梱包\n□ ゲスト用飲み物の購入\n□ Googleフォト共有フォルダ作成\n□ 当日の緊急連絡先一覧をDiscordに投稿\n□ 充電器・モバイルバッテリーの充電' },
+  { keywords: ['当日チェック','当日準備','開場前'], answer: '当日（準備〜開場前）チェックリスト：\n□ スタッフ集合・顔合わせ\n□ 赤ハチマキ配布・着用\n□ PC接続・スライド投映テスト\n□ マイク・スピーカー動作テスト\n□ Wi-Fi接続テスト\n□ 受付テーブル配置・名札セット\n□ レイアウト確認（島型配置）\n□ 主宰・ゲスト用テーブルセット\n□ 案内板設置\n□ BGM準備\n□ エントランス係を配置' },
+  { keywords: ['作業会中チェック','作業会チェック'], answer: '作業会中チェックリスト：\n□ 受付：名簿チェック漏れなし\n□ 司会：注意事項アナウンス完了\n□ 集合写真撮影\n□ アイスブレイク実施\n□ 席替えアナウンス（30分ごと）\n□ スペシャルコンテンツ実施\n□ アンケート案内\n□ 懇親会会場案内\n□ 忘れ物チェック\n□ 原状復帰・完全撤収' },
+  { keywords: ['懇親会チェック'], answer: '懇親会チェックリスト：\n□ 懇親会受付完了\n□ 当日追加参加の決済対応\n□ 乾杯挨拶\n□ ラストオーダーアナウンス\n□ 締めの挨拶\n□ 忘れ物チェック\n□ 完全撤収' },
+  { keywords: ['終了後','事後','アフター'], answer: '終了後チェックリスト：\n□ 集合写真をDiscordに共有\n□ Googleフォトに写真アップロード\n□ 振り返りシートの記入依頼\n□ 備品の回収・在庫記録更新\n□ スタッフお疲れさまメッセージ' },
+  { keywords: ['アイスブレイク','自己紹介','ゲーム'], answer: 'アイスブレイク：\n・2〜3テーマ（自己紹介、共通点探しゲーム等）\n・5分×2〜3テーマで実施\n・質問を投げかけ形式にすると盛り上がりやすい（過去好事例）\n・30分ごとに席替え' },
+  { keywords: ['集合写真','フォトセッション'], answer: '集合写真：\n・14:25頃に実施\n・司会が「皆さまお立ちください」とアナウンス→撮影隊へ合図\n・顔出しNGの方は外れてもらうか後列で配慮\n・集合写真は当日中にDiscordで共有' },
+  { keywords: ['リストバンド','入場管理'], answer: '入場管理：\n・リストバンド（青）：作業会参加者用\n・リストバンド（ゴールド）：懇親会参加者用\n・リストバンドで作業会/懇親会の参加区別を管理' },
+  { keywords: ['UTAGE','決済','QR','当日申込','キャンセル'], answer: '決済・当日対応：\n・UTAGEなどの決済システムと名簿の事前照合が必須\n・当日申込はQRコード決済で対応\n・当日申込フローを事前に確定しておく\n・キャンセル・追加参加の列を名簿に別途用意\n・事務担当1名が当日申込・キャンセル処理を担当' },
+  { keywords: ['Wi-Fi','ワイファイ','ネット'], answer: 'Wi-Fi関連：\n・会場のSSID・パスワードを確認し司会に共有\n・スライドにWi-Fi情報を反映\n・当日にWi-Fi接続テストを実施' },
+  { keywords: ['まーしー','まぎー','主宰'], answer: '主宰について：\n・まーしーさん・まぎーさんがウラカタマッチングサロンの主宰\n・14:07頃に主宰挨拶の時間を設定\n・懇親会の締めの挨拶も主宰が担当\n・主宰・ゲスト用テーブルはステージ近くに配置し、飲み物を事前セット' },
+  { keywords: ['クローク','荷物','コート'], answer: 'クローク管理：\n・懇親会会場でコート・荷物置き場を確保\n・会場係が管理を担当\n・撤収時に忘れ物チェックを実施' },
+  { keywords: ['アンケート','フィードバック'], answer: 'アンケート：\n・閉会時にアンケート依頼をアナウンス\n・アフターアンケートURL/QRコードを事前に準備\n・振り返りシートの記入は当日中〜翌日に依頼（鮮度が大事）' },
+];
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  addMsg(q, 'user');
+  // typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'chat-msg bot';
+  typing.innerHTML = '<div class="chat-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>';
+  const area = document.getElementById('chat-area');
+  area.appendChild(typing);
+  area.scrollTop = area.scrollHeight;
+
+  setTimeout(() => {
+    typing.remove();
+    const answer = findAnswer(q);
+    addMsg(answer, 'bot');
+  }, 600);
+}
+
+function addMsg(text, type) {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + type;
+  div.innerHTML = '<div class="chat-bubble">' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function findAnswer(query) {
+  let best = null, bestScore = 0;
+  for (const entry of knowledgeBase) {
+    let score = 0;
+    for (const kw of entry.keywords) {
+      if (query.includes(kw)) score++;
+    }
+    if (score > bestScore) { bestScore = score; best = entry; }
+  }
+  if (best) return best.answer;
+  return 'すみません、その質問にはお答えできませんでした。「受付」「備品」「タイムテーブル」「撮影」「司会」などのキーワードで質問してみてください。';
 }
 
 // ===== Init =====
